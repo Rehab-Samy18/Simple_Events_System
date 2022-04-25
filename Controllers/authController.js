@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Student = require("./../Models/studentModel");
 const Speaker = require("./../Models/speakerModel");
-
 module.exports.login = (request,response,next) => {
     let token;
     if(request.body.email=="rehab.samy18@gmail.com"&&request.body.password=="123")
