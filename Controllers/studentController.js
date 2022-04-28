@@ -2,11 +2,20 @@ const {validationResult} = require("express-validator");
 const Student = require("./../Models/studentModel")
 
 module.exports.getAllStudents = (request,response,next) => {
-    Student.find({})
-    .then((data)=>{
-        response.status(200).json({data});
-    })
-    .catch(error=>next(error))
+    console.log(request.role);
+    if(request.role == "admin")
+    {
+        Student.find({})
+        .then((data)=>{
+            response.status(200).json({data});
+        })
+        .catch(error=>next(error))
+    }
+    else
+    {
+        throw new Error("You Can't Display Events As You're not an admin")
+    }
+
 }
 
 module.exports.getStudentById = (request,response,next) => {
@@ -19,7 +28,10 @@ module.exports.getStudentById = (request,response,next) => {
     .catch(error=>next(error))
 }
 
-module.exports.createStudent = (request,response,next) => {
+module.exports.createStudent = (request,response,next) => { //Register
+    console.log(request.role);
+    if(request.role == "student")
+    {
         let result = validationResult(request);
         if(!result.isEmpty())
         {
@@ -39,15 +51,20 @@ module.exports.createStudent = (request,response,next) => {
             response.status(201).json({message:"Student Created",data});
         })
         .catch(error=>next(error))
+    }
+    else
+    {
+        throw new Error("You Can't Create Students As You're not a student!");
+    }
 }
 
 module.exports.updateStudent = (request,response,next) => {
     console.log(request.role);
-    if(request.role=="admin"){
-        delete request.body.password;
-        Student.findOneAndUpdate({_id : request.body.id},request.body)
-    }
-    else if(request.role=="student"){
+    if(request.role=="student"||request.role=="admin"){
+        if(request.role=="admin"){
+            delete request.body.password;
+            Student.findOneAndUpdate({_id : request.body.id},request.body)
+        }
     Student.updateOne({_id : request.body.id},{
         $set: {
             email:request.body.email,
@@ -61,14 +78,25 @@ module.exports.updateStudent = (request,response,next) => {
     })
     .catch(error=>next(error))
     }
+    else
+    {
+        throw new Error("You Can't Update Students As You're neither a student nor an admin!");
+    }
 }
 
 module.exports.deleteStudent = (request,response,next) => {
-    Student.deleteOne({_id:request.body.id})
-    .then(data=>{
-        if(data.deletedCount==0)
-        throw new Error("Student Not Exist");
-        response.status(200).json({message:"Student Deleted",data});
-    })
-    .catch(error=>next(error))
+    if(request.role=="student"||request.role=="admin")
+    {
+        Student.deleteOne({_id:request.body.id})
+        .then(data=>{
+            if(data.deletedCount==0)
+            throw new Error("Student Not Exist");
+            response.status(200).json({message:"Student Deleted",data});
+        })
+        .catch(error=>next(error))
+    }
+    else
+    {
+        throw new Error("You Can't Delete Students As You're neither a student nor an admin!");
+    }
 }

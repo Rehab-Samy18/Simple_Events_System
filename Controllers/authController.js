@@ -20,9 +20,30 @@ module.exports.login = (request,response,next) => {
             email:request.body.email,
             password:request.body.password
         })
-        .then(data => {
+        .then(async data => {
             if(data==null)
-            throw new Error("Username and Password incorrect");
+            {
+                await Speaker.findOne({
+                    email:request.body.email,
+                    password:request.body.password
+                })
+                .then(data=>{
+                    if(data==null)
+                    throw new Error("Username and Password incorrect");
+
+                    token = jwt.sign({
+                        _id : data._id,
+                        email : data.email,
+                        role : "speaker"},
+                        "myNameIsRehab",
+                        {expiresIn:"1h"}
+                        );
+                        response.status(200).json({msg:"Speaker Login",token})
+                })
+                .catch(error=>{
+                    next(error);
+                })
+            }
             
             token = jwt.sign({
                 _id : data._id,
