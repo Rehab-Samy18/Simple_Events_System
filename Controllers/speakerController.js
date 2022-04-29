@@ -33,11 +33,6 @@ module.exports.createSpeaker = (request,response,next) => {
     console.log(request.role);
     if(request.role == "speaker")
     {
-        Speaker.findOne({email:request.body.email})
-        .then(data=>{
-            if(data !== null)
-            throw new Error("Email is already existed");
-    
             let result = validationResult(request);
             if(!result.isEmpty())
             {
@@ -61,10 +56,6 @@ module.exports.createSpeaker = (request,response,next) => {
                 response.status(201).json({message:"Speaker Created",data});
             })
             .catch(error=>next(error))
-        })
-        .catch((error)=>{
-            next(error);
-        })
     }
     else
     {

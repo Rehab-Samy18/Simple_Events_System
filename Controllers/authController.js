@@ -3,6 +3,7 @@ const Student = require("./../Models/studentModel");
 const Speaker = require("./../Models/speakerModel");
 const { default: mongoose } = require("mongoose");
 const bcrypt = require("bcryptjs")
+const {validationResult} = require("express-validator");
 
 module.exports.login = (request,response,next) => {
     const { password } = request.body
@@ -84,63 +85,56 @@ module.exports.login = (request,response,next) => {
     }
 }
 
-module.exports.studentRegister = async (request,response) => { 
-    const {_id, email, password } = request.body
-    if(typeof(_id)!="number"||typeof(email)!="string"||typeof(password)!="string"){
-        return response.status(400).json({ message: "There is a problem with datatypes" })
-    }
-    if (password.length < 6) {
-        return response.status(400).json({ message: "Password less than 6 characters" })
-    }
+module.exports.studentRegister = (request,response,next) => { 
+    const { password } = request.body
+    let result = validationResult(request);
+        if(!result.isEmpty())
+        {
+            let message = result.array().reduce((current,error)=>current+error.msg+" "," ");
+            let error = new Error(message);
+            error.status = 422;
+            throw error;
+        }
+
     bcrypt.hash(password, 10).then(async (hash) => {
-        await Student.create({
-        _id,
-        email,
-        password: hash,
+        let student = new Student({
+            _id : request.body.id,
+            email : request.body.email,
+            password : hash
+        });
+        student.save()
+        .then((data)=>{
+            response.status(201).json({message:"Student Created",data});
         })
-        .then((user) =>
-        response.status(200).json({
-            message: "Student successfully created",
-            user
-        })
-        )
-        .catch((err) => 
-            response.status(401).json({
-            message: "Student not successful created"
-        })
-        );
+        .catch(error=>next(error))
     });
 };
 
 
 module.exports.speakerRegister = async (request,response) => { 
-    const {email,username,password,city,street,building} = request.body
-    if(typeof(email)!="string"||typeof(username)!="string"||typeof(password)!="string"||typeof(city)!="string"||typeof(street)!="string"||typeof(building)!="string"){
-        return response.status(400).json({ message: "There is a problem with datatypes" })
-    }
-    if (password.length < 6) {
-        return response.status(400).json({ message: "Password less than 6 characters" })
-    }
+    const {password} = request.body
+    let result = validationResult(request);
+            if(!result.isEmpty())
+            {
+                let message = result.array().reduce((current,error)=>current+error.msg+" "," ");
+                let error = new Error(message);
+                error.status = 422;
+                throw error;
+            }
     bcrypt.hash(password, 10).then(async (hash) => {
-        await Speaker.create({
-        _id:new mongoose.Types.ObjectId(),
-        email,
-        username,
-        password: hash,
-        city,
-        street,
-        building
+        let speaker = new Speaker({
+            _id : new mongoose.Types.ObjectId(),
+            email : request.body.email,
+            username : request.body.username,
+            password : hash,
+            city : request.body.city,
+            street : request.body.street,
+            building : request.body.building
+        });
+        speaker.save()
+        .then((data)=>{
+            response.status(201).json({message:"Speaker Created",data});
         })
-        .then((user) =>
-        response.status(200).json({
-            message: "Speaker successfully created",
-            user
-        })
-        )
-        .catch((err) => 
-            response.status(401).json({
-            message: "Speaker not successful created"
-        })
-        );
+        .catch(error=>next(error))
     });
 };
