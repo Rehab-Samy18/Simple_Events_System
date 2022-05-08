@@ -1,4 +1,5 @@
 const {validationResult} = require("express-validator");
+const bcrypt = require("bcryptjs")
 const Student = require("./../Models/studentModel")
 
 module.exports.getAllStudents = (request,response,next) => {
@@ -7,7 +8,7 @@ module.exports.getAllStudents = (request,response,next) => {
     {
         Student.find({})
         .then((data)=>{
-            response.status(200).json({data});
+            response.status(200).json(data);
         })
         .catch(error=>next(error))
     }
@@ -19,13 +20,18 @@ module.exports.getAllStudents = (request,response,next) => {
 }
 
 module.exports.getStudentById = (request,response,next) => {
-    Student.findById({_id:request.params.id})
+    if(request.role=="admin"){
+    Student.findById({_id:request.params._id})
     .then(data=>{
         if(data == null)
         throw new Error("Student Not Exist")
-        response.status(200).json({message:"Student By ID",data});
+        response.status(200).json(data);
     })
     .catch(error=>next(error))
+}
+else{
+    response.send({msg:"You can't display student's details as you're not an admin!"});
+}
 }
 
 module.exports.createStudent = (request,response,next) => { //Register
@@ -59,35 +65,39 @@ module.exports.createStudent = (request,response,next) => { //Register
 }
 
 module.exports.updateStudent = (request,response,next) => {
+    const { password } = request.body
     console.log(request.role);
     if(request.role=="student"||request.role=="admin"){
         if(request.role=="admin"){
             delete request.body.password;
-            Student.findOneAndUpdate({_id : request.body.id},request.body)
+            Student.findOneAndUpdate({_id : request.params._id},request.body)
         }
-    Student.updateOne({_id : request.body.id},{
-        $set: {
-            email:request.body.email,
-            password:request.body.password
-        }
-    })
-    .then((data)=>{
-        if(data.matchedCount==0)
-        throw new Error("Student Not Exist");
-        response.status(200).json({message:"Student Updated",data});
-    })
-    .catch(error=>next(error))
-    }
-    else
-    {
-        throw new Error("You Can't Update Students As You're neither a student nor an admin!");
-    }
-}
+        bcrypt.hash(password, 10).then(async (hash) => {
 
+            Student.updateOne({_id : request.params._id},{
+                $set: {
+                    email:request.body.email,
+                    password:hash
+                }
+            })
+            .then((data)=>{
+                if(data.matchedCount==0)
+                throw new Error("Student Not Exist");
+                response.status(200).json({message:"Student Updated",data});
+            })
+            .catch(error=>next(error))
+        }
+        )}
+        else
+        {
+            throw new Error("You Can't Update Students As You're neither a student nor an admin!");
+        }
+    }
+    
 module.exports.deleteStudent = (request,response,next) => {
     if(request.role=="student"||request.role=="admin")
     {
-        Student.deleteOne({_id:request.body.id})
+        Student.deleteOne({_id:request.params})
         .then(data=>{
             if(data.deletedCount==0)
             throw new Error("Student Not Exist");

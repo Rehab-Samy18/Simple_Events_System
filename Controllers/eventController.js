@@ -7,7 +7,7 @@ module.exports.getAllEvents = (request,response,next) => {
     {
         Event.find({}).populate({path:"students"}).populate({path:"mainSpeaker"}).populate({path:"otherSpeakers"})
         .then((data)=>{
-            response.status(200).json({data});
+            response.status(200).json(data);
         })
         .catch(error=>next(error))
     }
@@ -18,13 +18,18 @@ module.exports.getAllEvents = (request,response,next) => {
 }
 
 module.exports.getEventById = (request,response,next) => {
-    Event.findById({_id:request.params.id})
-    .then(data=>{
-        if(data == null)
-        throw new Error("Event Not Exist");
-        response.status(200).json({message:"Event By ID",data});
-    })
-    .catch(error=>next(error))
+    if(request.role=="admin"){
+        Event.findById({_id:request.params._id})
+        .then(data=>{
+            if(data == null)
+            throw new Error("Event Not Exist");
+            response.status(200).json(data);
+        })
+        .catch(error=>next(error))
+    }
+    else{
+        response.send({msg:"You can't display event's details as you're not an admin!"});
+    }
 }
 
 module.exports.createEvent = (request,response,next) => {
@@ -41,7 +46,7 @@ module.exports.createEvent = (request,response,next) => {
     }
 
     let event = new Event({
-        _id : request.body.id,
+        _id : request.body._id,
         title : request.body.title,
         eventDate : request.body.eventDate,
         mainSpeaker : request.body.mainSpeaker,
@@ -71,7 +76,7 @@ module.exports.updateEvent = (request,response,next) => {
     console.log(request.role);
     if(request.role=="admin")
     {
-    Event.updateOne({_id : request.body.id},{
+    Event.updateOne({_id : request.params._id},{
         $set: {
             title : request.body.title,
             eventDate : request.body.eventDate,
@@ -98,7 +103,7 @@ module.exports.deleteEvent = (request,response,next) => {
     console.log(request.role);
     if(request.role=="admin")
     {
-    Event.deleteOne({_id:request.body.id})
+    Event.deleteOne({_id:request.params})
     .then(data=>{
         if(data.deletedCount==0)
         throw new Error("Event Not Exist");

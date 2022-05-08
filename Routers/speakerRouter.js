@@ -23,10 +23,11 @@ router.route("/speakers")
         body("building").isAlphanumeric().withMessage("Building should be string"),
       ]
     ,controller.createSpeaker)
-.put(controller.updateSpeaker)
-.delete(controller.deleteSpeaker)
+//.put(controller.updateSpeaker)
+//.delete(controller.deleteSpeaker)
 
-router.get("/speakers/:id",controller.getSpeakerById);
-
+router.get("/speakers/:_id",controller.getSpeakerById);
+router.delete("/speakers/:_id",controller.deleteSpeaker);
+router.put("/speakers/:_id",controller.updateSpeaker);
 //Sent it to server
 module.exports = router;

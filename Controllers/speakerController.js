@@ -8,7 +8,7 @@ module.exports.getAllSpeakers = (request,response,next) => {
     {
         Speaker.find({})
         .then((data)=>{
-            response.status(200).json({data});
+            response.status(200).json(data);
         })
         .catch(error=>next(error))
     }
@@ -18,15 +18,20 @@ module.exports.getAllSpeakers = (request,response,next) => {
     }
 }
 
-module.exports.getSpeakerById = (request,response,next) => { 
-    Speaker.findById({_id:request.params.id})
+module.exports.getSpeakerById = (request,response,next) => {
+    if(request.role=="admin"){ 
+    Speaker.findById({_id:request.params._id})
     .then(data=>{
         if(data == null)
         throw new Error("Speaker Not Exist");
 
-        response.status(200).json({message:"Speaker By ID",data});
+        response.status(200).json(data);
     })
     .catch(error=>next(error))
+    }
+    else{
+        response.send({msg:"You can't display speaker's details as you're not an admin!"});
+    }
 }
 
 module.exports.createSpeaker = (request,response,next) => {
@@ -69,9 +74,9 @@ module.exports.updateSpeaker = (request,response,next) => {
         if(request.role=="admin"){
             delete request.body.username;
             delete request.body.password;
-            Speaker.findOneAndUpdate({_id : request.body.id},request.body)
+            Speaker.findOneAndUpdate({_id : request.params._id},request.body)
         }
-        Speaker.updateOne({_id : request.body.id},{
+        Speaker.updateOne({_id : request.params._id},{
             $set: {
                 email:request.body.email,
                 username:request.body.username,
@@ -97,7 +102,7 @@ module.exports.updateSpeaker = (request,response,next) => {
 module.exports.deleteSpeaker = (request,response,next) => {
     if(request.role=="speaker"||request.role=="admin")
     {
-        Speaker.deleteOne({_id:request.body.id})
+        Speaker.deleteOne({_id:request.params})
         .then(data=>{
             if(data.deletedCount==0)
             throw new Error("Speaker Not Exist");

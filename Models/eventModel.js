@@ -5,8 +5,8 @@ let eventSchema = new mongoose.Schema({
     _id : Number,
     title : {type:String,required:true},
     eventDate : Date,
-    mainSpeaker : {type:mongoose.Schema.Types.ObjectId,ref:"speakers"},
-    otherSpeakers : [{type:mongoose.Schema.Types.ObjectId,ref:"speakers"}],
+    mainSpeaker : {type:mongoose.Types.ObjectId,ref:"speakers"},
+    otherSpeakers : [{type:mongoose.Types.ObjectId,ref:"speakers"}],
     students : [{type:Number,ref:"students"}]
 })
 

@@ -23,10 +23,11 @@ router.route("/students")
         body("password").isStrongPassword().withMessage("Password is not strong")
       ]
     ,controller.createStudent)
-.put(controller.updateStudent)
-.delete(controller.deleteStudent)
+//.put(controller.updateStudent)
+//.delete(controller.deleteStudent)
 
-router.get("/students/:id",controller.getStudentById);
-
+router.get("/students/:_id",controller.getStudentById);
+router.delete("/students/:_id",controller.deleteStudent);
+router.put("/students/:_id",controller.updateStudent);
 //Sent it to server
 module.exports = router;

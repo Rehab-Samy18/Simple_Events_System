@@ -8,7 +8,7 @@ const router = express.Router();
 router.route("/events")
 .get(controller.getAllEvents)
 .post([
-        body("id").isInt().withMessage("id should be int"),
+        body("_id").isInt().withMessage("id should be int"),
         body("students.*").custom(value=>{
         return Student.findOne({
           _id:value
@@ -45,10 +45,11 @@ router.route("/events")
         }),
       ]
     ,controller.createEvent)
-.put(controller.updateEvent)
-.delete(controller.deleteEvent)
+//.put(controller.updateEvent)
+//.delete(controller.deleteEvent)
 
-router.get("/events/:id",controller.getEventById);
-
+router.get("/events/:_id",controller.getEventById);
+router.delete("/events/:_id",controller.deleteEvent);
+router.put("/events/:_id",controller.updateEvent);
 //Sent it to server
 module.exports = router;

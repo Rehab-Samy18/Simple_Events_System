@@ -17,7 +17,7 @@ module.exports.login = (request,response,next) => {
             "myNameIsRehab",
             {expiresIn:"1h"}
         ); 
-        response.status(200).json({msg:"Admin Login",token})
+        response.status(200).json({msg:"Admin",token})
     }
     else
     {
@@ -33,14 +33,16 @@ module.exports.login = (request,response,next) => {
                 .then(async data=>{
                     if(data==null)
                     {
-                        throw new Error("Speaker Not Found");
+                        //throw new Error("Speaker Not Found");
+                        response.send({msg:"Speaker Not Found"});
                     }
                     else
                     {
                         return bcrypt.compare(password, data.password).then(function(result) {
                             console.log(result)
                             if(!result){
-                                throw new Error("Speaker Login Not Successful")
+                                //throw new Error("Speaker Login Not Successful")
+                                response.send({msg:"Speaker Login Not Successful"});
                             }
                             else{
                                 token = jwt.sign({
@@ -50,7 +52,7 @@ module.exports.login = (request,response,next) => {
                                     "myNameIsRehab",
                                     {expiresIn:"1h"}
                                     );
-                                    response.status(200).json({msg:"Speaker Login",token})
+                                    response.status(200).json({msg:"Speaker",token})
                             }
                         })
                     }
@@ -64,7 +66,8 @@ module.exports.login = (request,response,next) => {
                 return bcrypt.compare(password, data.password).then(function(result) {
                     console.log(result)
                     if(!result){
-                        throw new Error("Student Login Not Successful")
+                        //throw new Error("Student Login Not Successful")
+                        response.send({msg:"Student Login Not Successful"});
                     }
                     else{
                         token = jwt.sign({
@@ -74,14 +77,14 @@ module.exports.login = (request,response,next) => {
                             "myNameIsRehab",
                             {expiresIn:"1h"}
                             );
-                            response.status(200).json({msg:"Student Login Success",token})
+                            response.status(200).json({msg:"Student",token})
                     }
                 })
             }
             })
-            .catch(error=>{
-                next(error);
-            })
+            // .catch(error=>{
+            //     next(error);
+            // })
     }
 }
 
