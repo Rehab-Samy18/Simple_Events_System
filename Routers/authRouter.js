@@ -7,7 +7,7 @@ const {body,params,query} = require("express-validator");
 
 router.route("/studentregister")
 .post([
-    body("id").isInt().withMessage("id should be int"),
+    body("_id").isInt().withMessage("id should be int"),
     body("email").isEmail().withMessage("Email Format is wrong").custom(value =>{
         return Student.findOne({
         'email':value

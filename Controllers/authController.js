@@ -101,7 +101,7 @@ module.exports.studentRegister = (request,response,next) => {
 
     bcrypt.hash(password, 10).then(async (hash) => {
         let student = new Student({
-            _id : request.body.id,
+            _id : request.body._id,
             email : request.body.email,
             password : hash
         });
