@@ -54,7 +54,7 @@ module.exports.createStudent = (request,response,next) => { //Register
         }
 
         let student = new Student({
-            _id : request.body.id,
+            //_id : request.body._id,
             email : request.body.email,
             password : request.body.password
         });
