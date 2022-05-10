@@ -11,5 +11,6 @@ module.exports = (request,response,next) => {
         next(new Error("Not Authenticated"));
     }
     request.role = decodedToken.role;
+    request._id = decodedToken._id;
     next();
 }

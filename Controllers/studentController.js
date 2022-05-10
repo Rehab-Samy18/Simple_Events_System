@@ -12,6 +12,13 @@ module.exports.getAllStudents = (request,response,next) => {
         })
         .catch(error=>next(error))
     }
+    else if(request.role == "student"){
+        Student.find({_id:request._id})
+        .then((data)=>{
+            response.status(200).json(data);
+        })
+        .catch(error=>next(error))
+    }
     else
     {
         throw new Error("You Can't Display Events As You're not an admin")
@@ -20,7 +27,7 @@ module.exports.getAllStudents = (request,response,next) => {
 }
 
 module.exports.getStudentById = (request,response,next) => {
-    if(request.role=="admin"){
+    if(request.role=="student"||request.role=="admin"){
     Student.findById({_id:request.params._id})
     .then(data=>{
         if(data == null)
@@ -30,10 +37,9 @@ module.exports.getStudentById = (request,response,next) => {
     .catch(error=>next(error))
 }
 else{
-    response.send({msg:"You can't display student's details as you're not an admin!"});
+    response.send({msg:"You can't display student's details as you're not a student!"});
 }
 }
-
 module.exports.createStudent = (request,response,next) => { //Register
     console.log(request.role);
     if(request.role == "student")
@@ -67,11 +73,21 @@ module.exports.createStudent = (request,response,next) => { //Register
 module.exports.updateStudent = (request,response,next) => {
     const { password } = request.body
     console.log(request.role);
-    if(request.role=="student"||request.role=="admin"){
         if(request.role=="admin"){
             delete request.body.password;
-            Student.findOneAndUpdate({_id : request.params._id},request.body)
+            Student.updateOne({_id : request.params._id},{
+                $set: {
+                    email:request.body.email,
+                }
+            })
+            .then((data)=>{
+                if(data.matchedCount==0)
+                throw new Error("Student Not Exist");
+                response.status(200).json({message:"Student Updated",data});
+            })
+            .catch(error=>next(error))
         }
+        else if(request.role=="student"){
         bcrypt.hash(password, 10).then(async (hash) => {
 
             Student.updateOne({_id : request.params._id},{

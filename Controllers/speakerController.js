@@ -12,14 +12,21 @@ module.exports.getAllSpeakers = (request,response,next) => {
         })
         .catch(error=>next(error))
     }
+    else if(request.role == "speaker"){
+        Speaker.find({_id:request._id})
+        .then((data)=>{
+            response.status(200).json(data);
+        })
+        .catch(error=>next(error))
+    }
     else
     {
-        throw new Error("You Can't Display Events As You're not an admin")
+        throw new Error("You Can't Display Events As You're not an admin or speaker!")
     }
 }
 
 module.exports.getSpeakerById = (request,response,next) => {
-    if(request.role=="admin"){ 
+    if(request.role=="speaker"||request.role=="admin"){ 
     Speaker.findById({_id:request.params._id})
     .then(data=>{
         if(data == null)
@@ -30,7 +37,7 @@ module.exports.getSpeakerById = (request,response,next) => {
     .catch(error=>next(error))
     }
     else{
-        response.send({msg:"You can't display speaker's details as you're not an admin!"});
+        response.send({msg:"You can't display speaker's details as you're not neither an admin nor a speaker!"});
     }
 }
 
@@ -70,12 +77,28 @@ module.exports.createSpeaker = (request,response,next) => {
 
 module.exports.updateSpeaker = (request,response,next) => {
     console.log(request.role);
-    if(request.role=="speaker"||request.role=="admin"){
-        if(request.role=="admin"){
-            delete request.body.username;
-            delete request.body.password;
-            Speaker.findOneAndUpdate({_id : request.params._id},request.body)
-        }
+    if(request.role=="admin"){
+        delete request.body.username;
+        delete request.body.password;
+        Speaker.updateOne({_id : request.params._id},{
+            $set: {
+                email:request.body.email,
+                username:request.body.username,
+                password:request.body.password,
+                city:request.body.city,
+                street:request.body.street,
+                building:request.body.building
+            }
+        })
+        .then((data)=>{
+            if(data.matchedCount==0)
+            throw new Error("Speaker Not Exist");
+            response.status(200).json({message:"Speaker Updated",data});
+        })
+        .catch(error=>next(error))
+    }
+    else if(request.role=="speaker"){
+
         Speaker.updateOne({_id : request.params._id},{
             $set: {
                 email:request.body.email,
