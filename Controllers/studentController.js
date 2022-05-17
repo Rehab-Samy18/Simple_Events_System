@@ -1,6 +1,9 @@
 const {validationResult} = require("express-validator");
 const bcrypt = require("bcryptjs")
 const Student = require("./../Models/studentModel")
+const EventController = require("./../Controllers/eventController")
+const Event = require("./../Models/eventModel")
+let result;
 
 module.exports.getAllStudents = (request,response,next) => {
     console.log(request.role);
@@ -13,15 +16,15 @@ module.exports.getAllStudents = (request,response,next) => {
         .catch(error=>next(error))
     }
     else if(request.role == "student"){
-        Student.find({_id:request._id})
-        .then((data)=>{
+         Student.find({_id:request._id})
+        .then(data=>{
             response.status(200).json(data);
         })
         .catch(error=>next(error))
     }
     else
     {
-        throw new Error("You Can't Display Events As You're not an admin")
+        throw new Error("You Can't Display Students As You're not an admin")
     }
 
 }
@@ -124,5 +127,27 @@ module.exports.deleteStudent = (request,response,next) => {
     else
     {
         throw new Error("You Can't Delete Students As You're neither a student nor an admin!");
+    }
+}
+module.exports.getStudentRegEvents = (request,response,next) => {
+    let eventsArr = [];
+    if(request.role=="student"){
+        Student.find({_id:request._id})
+        .then(data=>{
+             Event.find({})
+            .then(event=>{
+                for (let i = 0; i < event.length; i++) {
+                    for (let j = 0; j < event[i].students.length; j++) {
+                        if((event[i].students)[j]==data[0]._id)
+                        {
+                            console.log(event[i])
+                            eventsArr.push(event[i])
+                        }
+                    }
+                }
+                response.status(200).json(eventsArr);   
+            })
+        })
+        .catch(error=>next(error))
     }
 }
